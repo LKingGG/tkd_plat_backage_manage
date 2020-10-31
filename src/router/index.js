@@ -178,6 +178,30 @@ export const constantRoutes = [
         name: 'MsgSet',
         component: () => import('@/views/system/msgSet/msgSet'),
         meta: { title: '短信配置', icon: 'el-icon-message' }
+      }, {
+        path: 'outPrice',
+        name: 'OutPrice',
+        component: () => import('@/views/system/outPrice/outPrice'),
+        meta: { title: '提现设置', icon: 'el-icon-coin' }
+      }
+    ]
+  },
+  {
+    path: '/admin',
+    component: Layout,
+    name: 'Admin',
+    meta: { title: '管理员设置', icon: 'el-icon-s-custom' },
+    children: [
+      {
+        path: 'adminList',
+        name: 'AdminList',
+        component: () => import('@/views/admin/adminList/adminList'),
+        meta: { title: '管理员列表', icon: 'el-icon-tickets' }
+      }, {
+        path: 'roleList',
+        name: 'RoleList',
+        component: () => import('@/views/admin/roleList/roleList'),
+        meta: { title: '角色列表', icon: 'el-icon-view' }
       }
     ]
   },

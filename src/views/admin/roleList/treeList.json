@@ -1,0 +1,163 @@
+[{
+  "path": "1",
+  "label": "主页",
+  "children": [{
+    "path": "1.1",
+    "label": "主页"
+  }]
+},{
+  "path": "2",
+  "label": "首页管理",
+  "children": [{
+    "path": "2.1",
+    "label": "弹窗管理"
+  }, {
+    "path": "2.2",
+    "label": "load页"
+  }, {
+    "path": "2.3",
+    "label": "轮播图管理"
+  }, {
+    "path": "2.4",
+    "label": "活动图管理"
+  }, {
+    "path": "2.5",
+    "label": "模板管理"
+  }, {
+    "path": "2.6",
+    "label": "二级模板管理"
+  }]
+},{
+  "path": "3",
+  "label": "商品管理",
+  "children": [{
+    "path": "3.1",
+    "label": "商品类目"
+  }, {
+    "path": "3.2",
+    "label": "商品标签"
+  }, {
+    "path": "3.3",
+    "label": "普通商品"
+  }, {
+    "path": "3.4",
+    "label": "特价商品"
+  }, {
+    "path": "3.5",
+    "label": "换购商品"
+  }, {
+    "path": "3.6",
+    "label": "团购商品"
+  },{
+    "path": "3.7",
+    "label": "秒杀商品"
+  },{
+    "path": "3.8",
+    "label": "组合商品"
+  },{
+    "path": "3.9",
+    "label": "商品池"
+  }]
+},{
+  "path": "4",
+  "label": "订单管理",
+  "children": [{
+    "path": "4.1",
+    "label": "订单列表"
+  },{
+    "path": "4.2",
+    "label": "订单核销"
+  }]
+},{
+  "path": "5",
+  "label": "营销活动",
+  "children": [{
+    "path": "5.1",
+    "label": "满减活动"
+  }, {
+    "path": "5.2",
+    "label": "换购活动"
+  }, {
+    "path": "5.3",
+    "label": "其他活动"
+  }]
+},{
+  "path": "6",
+  "label": "优惠券管理",
+  "children": [{
+    "path": "6.1",
+    "label": "优惠券列表"
+  },{
+    "path": "6.2",
+    "label": "优惠券礼包"
+  },{
+    "path": "6.3",
+    "label": "发放优惠券"
+  }]
+},{
+  "path": "7",
+  "label": "人员管理",
+  "children": [{
+    "path": "7.1",
+    "label": "账号管理"
+  },{
+    "path": "7.2",
+    "label": "会员管理"
+  },{
+    "path": "7.3",
+    "label": "团长管理"
+  },{
+    "path": "7.4",
+    "label": "团长审核"
+  }]
+},{
+  "path": "8",
+  "label": "物流管理",
+  "children": [{
+    "path": "8.1",
+    "label": "站点管理"
+  },{
+    "path": "8.2",
+    "label": "路线管理"
+  }]
+},{
+  "path": "9",
+  "label": "账号管理",
+  "children": [{
+    "path": "9.1",
+    "label": "站点管理"
+  },{
+    "path": "9.2",
+    "label": "打印机管理"
+  }]
+},{
+  "path": "10",
+  "label": "权限管理",
+  "children": [{
+    "path": "10.1",
+    "label": "角色管理"
+  }]
+},{
+  "path": "11",
+  "label": "运营管理",
+  "children": [{
+    "path": "11.1",
+    "label": "订单统计"
+  },{
+    "path": "11.2",
+    "label": "商品统计"
+  },{
+    "path": "11.3",
+    "label": "流水记录"
+  }]
+},{
+  "path": "12",
+  "label": "平台管理",
+  "children": [{
+    "path": "12.1",
+    "label": "操作日志"
+  },{
+    "path": "12.2",
+    "label": "系统设置"
+  }]
+}]
