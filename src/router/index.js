@@ -111,6 +111,38 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/goods',
+    component: Layout,
+    name: 'Store',
+    meta: { title: '商品管理', icon: 'el-icon-s-shop' },
+    children: [
+      {
+        path: 'list',
+        name: 'StoreList',
+        component: () => import('@/views/goods/goodsList/goodsList'),
+        meta: { title: '商品列表', icon: 'el-icon-document' }
+      },
+      {
+        path: 'level',
+        name: 'StoreLevel',
+        component: () => import('@/views/goods/goodsClass/goodsClass'),
+        meta: { title: '商品分类', icon: 'el-icon-medal' }
+      },
+      {
+        path: 'audit',
+        name: 'StoreAudit',
+        component: () => import('@/views/goods/goodsBrand/goodsBrand'),
+        meta: { title: '商品品牌', icon: 'el-icon-view' }
+      },
+      {
+        path: 'group',
+        name: 'StoreGroup',
+        component: () => import('@/views/store/group'),
+        meta: { title: '商品类型', icon: 'el-icon-office-building' }
+      }
+    ]
+  },
+  {
     path: '/order',
     component: Layout,
     name: 'Order',
