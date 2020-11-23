@@ -4,6 +4,8 @@
       <div slot="header" align="center" class="clearfix">
         <span>卡片名称 - {{shopTitle}}</span>
         <el-button v-if="step != 1" @click="backLook" style="float: left; padding: 3px 0" type="text"><i class="el-icon-arrow-left"></i>返回</el-button>
+        <el-button v-if="step == 2" @click="backLook" style="float: right; padding: 3px 0" type="text"><i class="el-icon-plus"></i>添加文件夹</el-button>
+        <el-button v-if="step == 3" @click="backLook" style="float: right; padding: 3px 0" type="text"><i class="el-icon-plus"></i>添加素材</el-button>
       </div>
       <div class="overflow" v-if="step == 1">
         <div v-for="(item,index) in 4" class="f-l mr-10 mt-10 storeList" @click="lookShop(item)" align="center" style="width: 160px;height: 90px;">
@@ -58,7 +60,7 @@
         storeList:[],
         shopTitle:'',
         selRow:'',
-        step:1, // 1：查看店铺  2：查看店铺素材
+        step:1, // 1：查看店铺  2：查看店铺素材文件夹  3：查看素材
         url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
         srcList: [
           'https://fuss10.elemecdn.com/8/27/f01c15bb73e1ef3793e64e6b7bbccjpeg.jpeg',
