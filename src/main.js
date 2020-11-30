@@ -12,10 +12,12 @@ import '@/styles/style.scss' // personal global css
 import App from './App'
 import store from './store'
 import router from './router'
+import api from './api/my.js'
 
 import '@/icons' // icon
 import '@/permission' // permission control
 
+Vue.prototype.$api = api
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api

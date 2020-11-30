@@ -8,27 +8,30 @@
         <el-divider content-position="left">商品类型</el-divider>
         <el-form ref="form" :model="form" label-width="100px" v-if="form.goodsType == 1">
           <el-form-item label="商品名称">
-            <el-input v-model="form.name"></el-input>
+            <el-input v-model="form.goodsName" placeholder="商品名称"></el-input>
+          </el-form-item>
+          <el-form-item label="商品标题">
+            <el-input v-model="form.goodsTitle" placeholder="列表/详情显示的商品标题"></el-input>
+          </el-form-item>
+          <el-form-item label="商品编号">
+            <el-input v-model="form.goodsCode" placeholder="商品编号"></el-input>
           </el-form-item>
           <el-form-item label="商品分类">
-            <el-cascader
-              v-model="form.name"
-              :options="options"
-              :props="{ checkStrictly: true }"
-              @change="handleChange"
-              size="mini"></el-cascader>
+            <el-cascader v-model="form.categoryId" @change="categoryChange" :props="props" placeholder="请选择"
+              :clearable="true" :show-all-levels="false"></el-cascader>
+          </el-form-item>
+          <el-form-item label="商品品牌" v-if="form.categoryId">
+            <el-select v-model="form.brandId" placeholder="请选择商品品牌">
+              <el-option label="品牌一" value="shanghai"></el-option>
+              <el-option label="品牌二" value="beijing"></el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="商品促销语">
             <el-input v-model="form.name"></el-input>
           </el-form-item>
           <el-form-item label="商品单位">
-            <el-input v-model="form.name"></el-input>
-          </el-form-item>
-          <el-form-item label="商品品牌">
-            <el-select v-model="form.region" placeholder="请选择商品品牌">
-              <el-option label="品牌一" value="shanghai"></el-option>
-              <el-option label="品牌二" value="beijing"></el-option>
-            </el-select>
+            <el-input-number v-model="form.weight" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 克
+            <el-input-number v-model="form.volume" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> cm³
           </el-form-item>
           <el-form-item label="供货商">
             <el-select v-model="form.region" placeholder="请选择商品品牌">
@@ -69,9 +72,9 @@
             </el-radio-group>
           </el-form-item>
           <el-form-item label="是否上架">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="立刻上架" value="0"></el-radio>
-              <el-radio label="放入仓库" value="1"></el-radio>
+            <el-radio-group v-model="form.goodsStatus">
+              <el-radio label="待上架" value="0"></el-radio>
+              <el-radio label="销售中" value="1"></el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="商品所在地">
@@ -84,8 +87,8 @@
         <!--              购买信息                -->
         <el-divider content-position="left">购买信息</el-divider>
         <el-form>
-          <el-form-item label="市场价格">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
+          <el-form-item label="商品原价">
+            <el-input-number v-model="form.goodsPrice" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
           </el-form-item>
           <el-form-item label="销售价格">
             <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
@@ -95,14 +98,13 @@
           </el-form-item>
           <el-form-item label="运费模式">
             <el-radio-group v-model="form.resource">
-              <el-radio label="免邮" value="0"></el-radio>
-              <el-radio label="买家承担运费" value="1"></el-radio>
+              <el-radio label="免邮" value="1"></el-radio>
+              <el-radio label="买家承担运费" value="0"></el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="运费模板">
-            <el-select v-model="form.region" placeholder="请选择运费模板">
-              <el-option label="模板一" value="shanghai"></el-option>
-              <el-option label="模板二" value="beijing"></el-option>
+          <el-form-item label="快递公司">
+            <el-select v-model="form.region" placeholder="请选择快递公司">
+              <el-option v-for="(item,index) in companyList" :label="item.label" :value="item.value"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="每人限购">
@@ -365,6 +367,7 @@
 </template>
 
 <script>
+import { getToken } from '@/utils/auth'
 export default {
   name: '',
   data() {
@@ -378,8 +381,80 @@ export default {
         delivery: false,
         type: [],
         resource: '',
-        desc: ''
+        desc: '',
+        id:'', // 商品id 不填时为新建，填写时为修改
+        goodsName: '', //商品名字
+        goodsTitle: '', //列表/详情显示的商品标题
+        goodsPrice: '', //列表/详情显示的商品原价
+        goodsDetail: '', //商品详情中显示的html文本
+        categoryId: '', //商品所属分类id
+        mainImage: '', //商品主图 主要用于商品列表中
+        goodsVideo: '', //商品详情中商品轮播图中可以显示视频，如果存在则商品主图后挪一个位置
+        images: '', //商品详情中商品轮播图 数组的json格式
+        label: '', //商品标签 在商品列表/详情中显示 数组的json格式
+        brandId: '', //商品所属品牌id
+        goodsCode: '', //商品编号
+        goodsStatus: '', //商品状态 0 待上架 1销售中
+        parentId: '', //商品所属店铺 平台创建商品时必填，商户/自营 创建商品时不填写
+        maxAmount: '', //最高限购数量
+        minAmount: '', //最低起购数量
+        freeExpress: '', //是否包邮 1是 0 否
+        weight: '', //商品重量 单位 克
+        volume: '', //商品体积 单位 立方厘米
+        expressCompany: '', //快递公司名称
+        companyCode: '', //快递公司对应的编号
+        way: '', //快递计算方式 0 计件 1 计重 2 计体积
+        unitPrice: '', //快递单位价格
+        attributes: '', //商品属性
+        specs: '', //商品规格
+        imageKeys: '', //商品图片key
+        guideGoods: '', //是否金币商品 0否 1是
+        guideRate: '', //金币商品返还费率
+        goodsSort: '', //商品排序序号
+        saleAmount: '', //商品销售数量
+        additionalServices: '', //加购服务 需要转成数组的json字符串
+        goodsSku: '', //商品sku 需要转成数组的json字符串
       },
+      companyList:[{
+        value: 'SF',
+        label: '顺丰速运'
+      },{
+        value: 'HTKY',
+        label: '百世快递',
+      },{
+        value: 'ZTO',
+        label: '中通快递'
+      },{
+        value: 'STO',
+        label: '申通快递'
+      },{
+        value: 'YTO',
+        label: '圆通速递'
+      },{
+        value: 'YD',
+        label: '韵达速递'
+      },{
+        value: 'YZPY',
+        label: '邮政快递包裹'
+      },{
+        value: 'EMS',
+        label: 'EMS'
+      },{
+        value: 'HHTT',
+        label: '天天快递'
+      },{
+        value: 'JD',
+        label: '京东快递'
+      },{
+        value: 'UC',
+        label: '优速快递'
+      },{
+        value: 'DBL',
+        label: '德邦快递'
+      },{
+        value: 'ZJS',
+        label: '宅急送'
+      }],
       options: [{
         value: 'zhinan',
         label: '指南',
@@ -600,6 +675,13 @@ export default {
       },
       fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}, {name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}],
       dialogVisible: false,
+      props: { // 分类列表
+        expandTrigger: 'hover',
+        emitPath: false,
+        lazy:true,
+        lazyLoad:this.lazyLoad,
+        checkStrictly: true
+      },
     }
   },
   mounted() {
@@ -665,8 +747,47 @@ export default {
         } else {
             layer.msg(res.Message);
         }
-    }
+    },
     /* 上传视频 end */
+    lazyLoad(node,resolve){ // 获取子级分类
+      this.getData(node,resolve)
+    },
+    getData(node,resolve){ //获取子级分类方法
+      console.log('*************')
+      console.log(node,resolve)
+      const level = node.level
+      var obj = {}
+      if (level === 0) {
+        obj = {}
+      }
+      if (level > 0) {
+        obj.parentId = node.value
+      }
+      this.$api.categoryListAll(obj).then(res => {
+        var result
+        if (level === 0) {
+          result = res.data
+          result.forEach(item => {
+            item.value = item.id;
+            item.label = item.categoryName
+          })
+        }
+        if (level > 0 && level < 3) {
+          result = res.data
+          result.forEach(item => {
+            item.value = item.id;
+            item.label = item.categoryName
+            //这句代码表示当点击最后一级的时候 label后面不会转圈圈 并把相关值赋值到选择器上
+            item.leaf = level >= 2
+          })
+        }
+        resolve(result)
+      })
+    },
+    categoryChange(){
+      this.form.brandId = ''
+      
+    }
   }
 }
 </script>

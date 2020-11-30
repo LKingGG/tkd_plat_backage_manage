@@ -326,13 +326,62 @@ export default {
         value: '1',
         label: '虚拟商品'
       }],
+      listQuery: {
+        page: 1, // 页码
+        limit: 10, // 每页显示个数
+        goodsName: '', // 商品名称
+        categoryId: 0, // 分类id
+        goodsStatus: '', // 商品状态 0 ，1， 不传
+        platform: '', // 是否自营 0，1，不传
+      },
+      pageSize: 0,
+      pageTotal: 0,
     }
   },
   mounted() {
-
+    this.loadData()
   },
   methods: {
-
+    getList(page) {
+      if (typeof page === 'number') {
+        this.listQuery.page = page
+      }
+      this.listQuery.active = this.actives
+      if (this.createdTime.length === 2) {
+        this.listQuery.startTime = this.createdTime[0]
+        this.listQuery.endTime = this.createdTime[1]
+      }
+      if (this.useCoupon === '全部') {
+        this.listQuery.useCoupon = 0
+      } else {
+        this.listQuery.useCoupon = this.useCoupon
+      }
+      if (this.category.length !== 2) {
+        this.listQuery.category = 0
+      } else {
+        this.listQuery.category = this.category[1]
+      }
+      this.listQuery.cate
+      this.listLoading = true
+      this.listQuery.pid = 0
+      /* const { data } = await fetchList(this.listQuery) */
+      this.pageSize = data.count
+      this.pageTotal = data.total
+      this.list = data.list
+      this.listLoading = false
+      this.selections = []
+    },
+    loadData(){
+      this.listLoading = true
+      this.$api.goodsList(this.listQuery).then(res =>{
+        alert(res)
+        this.pageSize = res.count
+        this.pageTotal = res.total
+        this.tableData = res.list
+        this.listLoading = false
+        this.selections = []
+      })
+    }
   }
 }
 </script>
