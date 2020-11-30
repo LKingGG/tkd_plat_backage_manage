@@ -20,10 +20,12 @@
             <el-cascader v-model="form.categoryId" @change="categoryChange" :props="props" placeholder="请选择"
               :clearable="true" :show-all-levels="false"></el-cascader>
           </el-form-item>
-          <el-form-item label="商品品牌" v-if="form.categoryId">
+          <el-form-item label="商品品牌" v-if="form.brandId">
             <el-select v-model="form.brandId" placeholder="请选择商品品牌">
-              <el-option label="品牌一" value="shanghai"></el-option>
-              <el-option label="品牌二" value="beijing"></el-option>
+              <el-option v-for="(item,index) in brandList" :label="item.brandName" :value="item.id">
+                <span style="float: left">{{ item.brandName }}</span>
+                <img :src="item.brandImage" style="float: right; margin-top: 5px;" height="24" alt="">
+              </el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="商品促销语">
@@ -97,7 +99,7 @@
             <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
           </el-form-item>
           <el-form-item label="运费模式">
-            <el-radio-group v-model="form.resource">
+            <el-radio-group v-model="form.freeExpress">
               <el-radio label="免邮" value="1"></el-radio>
               <el-radio label="买家承担运费" value="0"></el-radio>
             </el-radio-group>
@@ -108,62 +110,42 @@
             </el-select>
           </el-form-item>
           <el-form-item label="每人限购">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
+            <el-input-number v-model="form.maxAmount" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
           </el-form-item>
           <el-form-item label="最少购买数">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
-          </el-form-item>
-        </el-form>
-        <!--              预售设置                -->
-        <el-divider content-position="left">预售设置</el-divider>
-        <el-form>
-          <el-form-item label="是否支持预售">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="是" value="0"></el-radio>
-              <el-radio label="否" value="1"></el-radio>
-            </el-radio-group>
+            <el-input-number v-model="form.minAmount" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
           </el-form-item>
         </el-form>
         <!--              积分设置                -->
-        <el-divider content-position="left">积分设置</el-divider>
+        <el-divider content-position="left">金币商品设置</el-divider>
         <el-form>
-          <el-form-item label="">
+          <el-form-item label="是否为金币商品">
             <el-radio-group v-model="form.resource">
-              <el-radio label="是" value="0"></el-radio>
-              <el-radio label="否" value="1"></el-radio>
+              <el-radio label="是" value="1"></el-radio>
+              <el-radio label="否" value="0"></el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="积分兑换设置">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="非积分兑换" value="0"></el-radio>
-              <el-radio label="只支持积分兑换" value="1"></el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </el-form>
-        <!--              折扣设置                -->
-        <el-divider content-position="left">折扣设置</el-divider>
-        <el-form>
-          <el-form-item label="普通会员">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> %
-          </el-form-item>
-          <el-form-item label="价格保留方式">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="抹去角和分" value="0"></el-radio>
-              <el-radio label="抹去分" value="1"></el-radio>
-            </el-radio-group>
+          <el-form-item label="金币返还费率">
+            <el-input-number v-model="form.guideRate" controls-position="right" :precision="2" :min="0" :max="100" size="mini"></el-input-number> %
           </el-form-item>
         </el-form>
       </el-tab-pane>
       <!-- 商品规格 start -->
       <el-tab-pane label="商品规格">
-        <div>
-          <el-button type="primary" size="mini" @click="dialogVisible = true">编辑规格</el-button>
-          <el-button size="mini">清空规格</el-button>
-        </div>
         <el-card shadow="hover" class="mt-10">
           <div style="color: orange;font-size: 12px;">
             <el-divider content-position="left">操作提示</el-divider>
             <p>1、规格尽量添加完再操作数据，修改规格可能出现价格、库存重置</p>
+          </div>
+          <div style="color: orange;font-size: 12px;">
+            <el-divider content-position="left">添加规格</el-divider>
+            <div>
+              <el-select v-model="form.region" placeholder="请选择商品规格" size="mini">
+                <el-option v-for="(item,index) in specList" :label="item.specName" :value="item.id"></el-option>
+              </el-select>
+              <el-button type="primary" size="mini" @click="dialogVisible = true">快速添加规格</el-button>
+              <el-button size="mini">清空规格</el-button>
+            </div>
           </div>
           <div>
             <el-divider content-position="left">已选规格</el-divider>
@@ -173,14 +155,41 @@
               style="width: 100%"
               :show-header="false">
               <el-table-column
-                prop="name"
                 label="规格名"
                 width="180">
+                <template slot-scope="scope">
+                  <el-input v-model="scope.row.name"></el-input>
+                </template>
               </el-table-column>
               <el-table-column
                 label="规格内容">
                 <template slot-scope="scope">
-                  <el-button v-for="(item,index) in scope.row.list" type="primary" size="mini">{{item}}</el-button>
+                  <el-tag
+                    :key="tag"
+                    v-for="tag in scope.row.list"
+                    closable
+                    :disable-transitions="false"
+                    @close="handleClose(tag)">
+                    {{tag}}
+                  </el-tag>
+                  <el-input
+                    class="input-new-tag"
+                    v-if="inputVisible"
+                    v-model="inputValue"
+                    ref="saveTagInput"
+                    size="small"
+                    @keyup.enter.native="handleInputConfirm"
+                    @blur="handleInputConfirm"
+                  >
+                  </el-input>
+                  <el-button v-else class="button-new-tag" size="small" @click="showInput">+ 添加规格</el-button>
+                </template>
+              </el-table-column>
+              <el-table-column
+                label="操作"
+                width="180">
+                <template slot-scope="scope">
+                  <el-button @click="">删除行</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -237,19 +246,20 @@
       <!-- 商品属性 start -->
       <el-tab-pane label="商品属性">
         <el-table
-          :data="propertyData"
+          :data="form.attributes"
           border
-          style="width: 500px"
+          style="width: 600px"
           highlight-current-row>
           <el-table-column
             align="center"
-            label="属性名称">
-            <template slot-scope="scope"><el-input placeholder="请输入属性名称" size="mini" v-model="scope.row.key"></el-input></template>
+            label="属性名称"
+            width="200">
+            <template slot-scope="scope"><el-input placeholder="请输入属性名称(例:品牌)" size="mini" v-model="scope.row.title"></el-input></template>
           </el-table-column>
           <el-table-column
             label="属性内容"
             align="center">
-            <template slot-scope="scope"><el-input placeholder="请输入属性内容" size="mini" v-model="scope.row.value"></el-input></template>
+            <template slot-scope="scope"><el-input placeholder="请输入属性内容(例如:Nike/耐克)" size="mini" v-model="scope.row.value"></el-input></template>
           </el-table-column>
           <el-table-column
             label="操作"
@@ -343,26 +353,6 @@
         <el-input type="textarea" v-model="form.desc"></el-input>
       </el-form-item>
     </el-tabs>
-    <el-dialog
-      title="选择规格"
-      :visible.sync="dialogVisible"
-      width="60%"
-      :before-close="handleClose">
-      <div>
-        <el-select v-model="form.region" placeholder="请选择商品规格">
-          <el-option label="品牌一" value="shanghai"></el-option>
-          <el-option label="品牌二" value="beijing"></el-option>
-        </el-select>
-      </div>
-      <el-row>
-        <el-col :span="3"></el-col>
-        <el-col :span="9"></el-col>
-      </el-row>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
@@ -394,21 +384,21 @@ export default {
         label: '', //商品标签 在商品列表/详情中显示 数组的json格式
         brandId: '', //商品所属品牌id
         goodsCode: '', //商品编号
-        goodsStatus: '', //商品状态 0 待上架 1销售中
+        goodsStatus: '0', //商品状态 0 待上架 1销售中
         parentId: '', //商品所属店铺 平台创建商品时必填，商户/自营 创建商品时不填写
         maxAmount: '', //最高限购数量
         minAmount: '', //最低起购数量
-        freeExpress: '', //是否包邮 1是 0 否
+        freeExpress: '0', //是否包邮 1是 0 否
         weight: '', //商品重量 单位 克
         volume: '', //商品体积 单位 立方厘米
         expressCompany: '', //快递公司名称
         companyCode: '', //快递公司对应的编号
         way: '', //快递计算方式 0 计件 1 计重 2 计体积
         unitPrice: '', //快递单位价格
-        attributes: '', //商品属性
+        attributes: [{title:'',value:''}], //商品属性
         specs: '', //商品规格
         imageKeys: '', //商品图片key
-        guideGoods: '', //是否金币商品 0否 1是
+        guideGoods: '0', //是否金币商品 0否 1是
         guideRate: '', //金币商品返还费率
         goodsSort: '', //商品排序序号
         saleAmount: '', //商品销售数量
@@ -682,14 +672,22 @@ export default {
         lazyLoad:this.lazyLoad,
         checkStrictly: true
       },
+      brandList:[],
+      specList:[]
     }
   },
   mounted() {
-
+    let sendData = {
+      page: 1,
+      limit: 100,
+    }
+    this.$api.specList(this.params).then(res => {
+      this.specList = res.data.data
+    })
   },
   methods: {
     addPropertyBtn(){
-      this.propertyData.push([{'key':'','value':''}])
+      this.form.attributes.push([{'title':'','value':''}])
     },
     deleteProperty(index,row){
       console.log(index, row);
@@ -784,9 +782,34 @@ export default {
         resolve(result)
       })
     },
-    categoryChange(){
+    categoryChange(val){
       this.form.brandId = ''
-      
+      let sendData = {
+        'categoryId' : val
+      }
+      this.$api.brandGet(sendData).then(res => {
+        this.brandList = res.data
+      })
+    },
+    /* 添加标签 */
+    handleClose(tag) {
+      this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
+    },
+
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+
+    handleInputConfirm() {
+      let inputValue = this.inputValue;
+      if (inputValue) {
+        this.dynamicTags.push(inputValue);
+      }
+      this.inputVisible = false;
+      this.inputValue = '';
     }
   }
 }

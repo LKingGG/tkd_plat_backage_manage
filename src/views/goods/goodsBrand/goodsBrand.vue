@@ -16,7 +16,7 @@
       </el-table-column>
       <el-table-column align="center" label="所属分类" width="200">
         <template slot-scope="scope">
-          {{ scope.row.categoryPath }}
+          {{ scope.row.categoryName }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="最近更新时间" width="160">
