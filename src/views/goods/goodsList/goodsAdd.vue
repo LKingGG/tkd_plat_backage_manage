@@ -1,13 +1,12 @@
 <template>
   <div>
-    <tinymce v-model="form.goodsDetail" :height="500" />
     <el-tabs type="border-card">
       <el-tab-pane label="基础设置">
         <el-divider content-position="left">商品类型</el-divider>
-        <el-radio class="ml-20" v-model="form.goodsType" label="1" border>实物商品</el-radio>
-        <el-radio v-model="form.goodsType" label="2" border>虚拟商品</el-radio>
-        <el-divider content-position="left">商品类型</el-divider>
-        <el-form ref="form" :model="form" label-width="100px" v-if="form.goodsType == 1">
+        <el-radio class="ml-20" v-model="form.goodsType" label="0" border>实物商品</el-radio>
+        <el-radio v-model="form.goodsType" label="1" border>虚拟商品</el-radio>
+        <el-divider content-position="left">基本信息</el-divider>
+        <el-form ref="form" :model="form" label-width="100px" v-if="form.goodsType == 0">
           <el-form-item label="商品名称">
             <el-input v-model="form.goodsName" placeholder="商品名称"></el-input>
           </el-form-item>
@@ -16,6 +15,27 @@
           </el-form-item>
           <el-form-item label="商品编号">
             <el-input v-model="form.goodsCode" placeholder="商品编号"></el-input>
+          </el-form-item>
+          <el-form-item label="商品标签">
+            <el-tag
+              :key="tag"
+              v-for="tag in labelList"
+              closable
+              :disable-transitions="false"
+              @close="labelClose(tag,labelList)">
+              {{tag}}
+            </el-tag>
+            <el-input
+              class="input-new-tag"
+              v-if="labelVisible"
+              v-model="labelValue"
+              ref="labelInput"
+              size="small"
+              @keyup.enter.native="handleLabelConfirm(labelValue)"
+              @blur="handleLabelConfirm(labelValue)"
+            >
+            </el-input>
+            <el-button v-else class="button-new-tag" size="small" @click="showLabel">+ 添加标签</el-button>
           </el-form-item>
           <el-form-item label="商品分类">
             <el-cascader v-model="form.categoryId" @change="categoryChange" :props="props" placeholder="请选择"
@@ -33,76 +53,44 @@
             <el-input v-model="form.name"></el-input>
           </el-form-item>
           <el-form-item label="商品单位">
-            <el-input-number v-model="form.weight" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 克
-            <el-input-number v-model="form.volume" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> cm³
-          </el-form-item>
-          <el-form-item label="供货商">
-            <el-select v-model="form.region" placeholder="请选择商品品牌">
-              <el-option label="品牌一" value="shanghai"></el-option>
-              <el-option label="品牌二" value="beijing"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="基础销量">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
-          </el-form-item>
-          <el-form-item label="基础点击量">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
-          </el-form-item>
-          <el-form-item label="基础分享数">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
+            <el-input-number v-model="form.weight" controls-position="right" :min="1" size="mini"></el-input-number> 克
+            <el-input-number v-model="form.volume" controls-position="right" :min="1" size="mini"></el-input-number> cm³
           </el-form-item>
           <el-form-item label="商家编号">
             <el-input v-model="form.name"></el-input>
           </el-form-item>
-          <el-form-item label="生产日期">
-            <el-date-picker type="date" placeholder="选择日期" v-model="form.date1" class="w-150"></el-date-picker>
-          </el-form-item>
-          <el-form-item label="保质期天数">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 天
-          </el-form-item>
-          <el-form-item label="总库存">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
-          </el-form-item>
-          <el-form-item label="库存预警">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
-            <div class="c-aaa" style="font-size: 12px;">设置最低库存预警值。当库存低于预警值时商家中心商品列表页库存列红字提醒。
-    0为不预警。</div>
-          </el-form-item>
-          <el-form-item label="库存显示">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="是" value="0"></el-radio>
-              <el-radio label="否" value="1"></el-radio>
-            </el-radio-group>
+          <el-form-item label="商品序号">
+            <el-input-number v-model="form.goodsSort" controls-position="right" :min="1" size="mini" :precision="0"></el-input-number>
           </el-form-item>
           <el-form-item label="是否上架">
             <el-radio-group v-model="form.goodsStatus">
-              <el-radio label="待上架" value="0"></el-radio>
-              <el-radio label="销售中" value="1"></el-radio>
+              <el-radio label="0">待上架</el-radio>
+              <el-radio label="1">销售中</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="商品所在地">
+          <!-- <el-form-item label="商品所在地">
             <el-radio-group v-model="form.resource">
               <el-radio label="立刻上架" value="0"></el-radio>
               <el-radio label="放入仓库" value="1"></el-radio>
             </el-radio-group>
-          </el-form-item>
+          </el-form-item> -->
         </el-form>
         <!--              购买信息                -->
         <el-divider content-position="left">购买信息</el-divider>
         <el-form>
           <el-form-item label="商品原价">
-            <el-input-number v-model="form.goodsPrice" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
+            <el-input-number v-model="form.goodsPrice" controls-position="right" :min="1" :max="10" size="mini"></el-input-number> 元
           </el-form-item>
           <el-form-item label="销售价格">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
+            <el-input-number v-model="num" controls-position="right" :min="1" :max="10" size="mini"></el-input-number> 元
           </el-form-item>
           <el-form-item label="成本价格">
-            <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 元
+            <el-input-number v-model="num" controls-position="right" :min="1" :max="10" size="mini"></el-input-number> 元
           </el-form-item>
           <el-form-item label="运费模式">
             <el-radio-group v-model="form.freeExpress">
-              <el-radio label="免邮" value="1"></el-radio>
-              <el-radio label="买家承担运费" value="0"></el-radio>
+              <el-radio label="1">免邮</el-radio>
+              <el-radio label="0">买家承担运费</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="快递公司">
@@ -111,19 +99,19 @@
             </el-select>
           </el-form-item>
           <el-form-item label="每人限购">
-            <el-input-number v-model="form.maxAmount" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
+            <el-input-number v-model="form.maxAmount" controls-position="right" :min="1" :max="10" size="mini"></el-input-number> 件
           </el-form-item>
           <el-form-item label="最少购买数">
-            <el-input-number v-model="form.minAmount" controls-position="right" @change="handleChange" :min="1" :max="10" size="mini"></el-input-number> 件
+            <el-input-number v-model="form.minAmount" controls-position="right" :min="1" :max="10" size="mini"></el-input-number> 件
           </el-form-item>
         </el-form>
         <!--              积分设置                -->
         <el-divider content-position="left">金币商品设置</el-divider>
         <el-form>
           <el-form-item label="是否为金币商品">
-            <el-radio-group v-model="form.resource">
-              <el-radio label="是" value="1"></el-radio>
-              <el-radio label="否" value="0"></el-radio>
+            <el-radio-group v-model="form.guideGoods">
+              <el-radio label="1">是</el-radio>
+              <el-radio label="0">否</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="金币返还费率">
@@ -141,7 +129,7 @@
           <div style="color: orange;font-size: 12px;">
             <el-divider content-position="left">添加规格</el-divider>
             <div>
-              <el-select v-model="form.region" placeholder="请选择商品规格" size="mini">
+              <el-select v-model="specSel" placeholder="请选择商品规格" size="mini">
                 <el-option v-for="(item,index) in specList" :label="item.specName" :value="item.id"></el-option>
               </el-select>
               <el-button type="primary" size="mini" @click="fastAdd()">快速添加规格</el-button>
@@ -228,16 +216,14 @@
             <template slot-scope="scope"><el-input size="mini" v-model="scope.row.salePrice"></el-input></template>
           </el-table-column>
           <el-table-column
-            prop="price"
             label="市场价格"
             width="180">
-            <template slot-scope="scope"><el-input size="mini"></el-input></template>
+            <template slot-scope="scope"><el-input size="mini" v-model="scope.row.price"></el-input></template>
           </el-table-column>
           <el-table-column
-            prop="skuCode"
             label="sku编号"
             width="180">
-            <template slot-scope="scope"><el-input size="mini"></el-input></template>
+            <template slot-scope="scope"><el-input size="mini" v-model="scope.row.skuCode"></el-input></template>
           </el-table-column>
           <el-table-column
             label="图片"
@@ -285,7 +271,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-button style="width: 500px;" icon="el-icon-plus" type="primary" size="mini" @click="addPropertyBtn">添加</el-button>
+        <el-button style="width: 600px;" icon="el-icon-plus" type="primary" size="mini" @click="addPropertyBtn">添加</el-button>
       </el-tab-pane>
       <!-- 商品属性 end -->
       <!-- 媒体设置 start -->
@@ -294,14 +280,15 @@
           <el-divider content-position="left">展示视频</el-divider>
           <el-form-item label="视频上传">
             <el-upload class="avatar-uploader"
-               action="上传地址"
+               action="https://wxin.natapp4.cc/material/mt/upload/"
+              :headers="headers"
                v-bind:data="{FoldPath:'上传目录',SecretKey:'安全验证'}"
                v-bind:on-progress="uploadVideoProcess"
                v-bind:on-success="handleVideoSuccess"
                v-bind:before-upload="beforeUploadVideo"
                v-bind:show-file-list="false">
               <video v-if="videoForm.showVideoPath !='' && !videoFlag"
-                 v-bind:src="videoForm.showVideoPath"
+                 :src="videoForm.showVideoPath"
                  class="avatar video-avatar"
                  controls="controls">
                   您的浏览器不支持视频播放
@@ -321,7 +308,7 @@
               action="https://wxin.natapp4.cc/material/mt/upload/"
               :headers="headers"
               :show-file-list="false"
-              :on-success="(res, file)=>{return mainImageUpload(res, file, scope.row)}"
+              :on-success="mainImageUpload"
               :before-upload="beforeAvatarUpload">
               <img v-if="form.mainImage" :src="form.mainImage" class="avatar">
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -334,6 +321,7 @@
               :headers="headers"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
+              :on-change="handleChange"
               :file-list="fileList"
               list-type="picture"
               multiple>
@@ -346,53 +334,94 @@
         </el-form>
       </el-tab-pane>
       <!-- 媒体设置 end -->
-
-      <el-form-item label="活动时间">
-        <el-col :span="11">
-          <el-date-picker type="date" placeholder="选择日期" v-model="form.date1" style="width: 100%;"></el-date-picker>
-        </el-col>
-        <el-col class="line" :span="2">-</el-col>
-        <el-col :span="11">
-          <el-time-picker placeholder="选择时间" v-model="form.date2" style="width: 100%;"></el-time-picker>
-        </el-col>
-      </el-form-item>
-      <el-form-item label="即时配送">
-        <el-switch v-model="form.delivery"></el-switch>
-      </el-form-item>
-      <el-form-item label="活动性质">
-        <el-checkbox-group v-model="form.type">
-          <el-checkbox label="美食/餐厅线上活动" name="type"></el-checkbox>
-          <el-checkbox label="地推活动" name="type"></el-checkbox>
-          <el-checkbox label="线下主题活动" name="type"></el-checkbox>
-          <el-checkbox label="单纯品牌曝光" name="type"></el-checkbox>
-        </el-checkbox-group>
-      </el-form-item>
-      <el-form-item label="活动形式">
-        <el-input type="textarea" v-model="form.desc"></el-input>
-      </el-form-item>
+      <!-- 加购服务 start -->
+      <el-tab-pane label="加购设置">
+        <el-table
+          :data="form.additionalServices"
+          border
+          style="width: 600px"
+          highlight-current-row>
+          <el-table-column
+            align="center"
+            label="服务名称"
+            width="400">
+            <template slot-scope="scope"><el-input placeholder="请输入服务名称(例:1年碎屏保修服务)" size="mini" v-model="scope.row.serviceName"></el-input></template>
+          </el-table-column>
+          <el-table-column
+            label="价格"
+            align="center">
+            <template slot-scope="scope">
+              <el-input placeholder="请输入价格" type="number" size="mini" v-model="scope.row.price">
+                <span
+                  class="el-input__icon"
+                  slot="suffix">
+                  元
+                </span>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="操作"
+            align="center"
+            width="50">
+            <template slot-scope="scope">
+              <el-button type="text" class="c-red" size="mini" @click="deleteServices(scope.$index, scope.row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-button style="width: 600px;" icon="el-icon-plus" type="primary" size="mini" @click="addServicesBtn">添加</el-button>
+      </el-tab-pane>
+      <!-- 加购服务 end -->
     </el-tabs>
+    <div class="goodsFooter"><el-button type="primary" @click="submit">提 交</el-button></div>
   </div>
 </template>
 
 <script>
 import Tinymce from "@/components/Tinymce";
 import { getToken } from '@/utils/auth'
-import E from 'wangeditor'
 export default {
   components: { Tinymce },
   name: 'editor',
   data() {
     return {
       form: {
-        goodsType: '1',
-        name: '',
-        region: '',
-        date1: '',
-        date2: '',
-        delivery: false,
-        type: [],
-        resource: '',
-        desc: '',
+        goodsType: '0',
+        id:'', // 商品id 不填时为新建，填写时为修改
+        goodsName: '', //商品名字
+        goodsTitle: '', //列表/详情显示的商品标题
+        goodsPrice: '', //列表/详情显示的商品原价
+        goodsDetail: '', //商品详情中显示的html文本
+        categoryId: '', //商品所属分类id
+        mainImage: '', //商品主图 主要用于商品列表中
+        mainKey: '', // 商品主图key，提交时需要添加到imageKeys里
+        goodsVideo: '', //商品详情中商品轮播图中可以显示视频，如果存在则商品主图后挪一个位置
+        images: '', //商品详情中商品轮播图 数组的json格式
+        label: '', //商品标签 在商品列表/详情中显示 数组的json格式
+        brandId: '', //商品所属品牌id
+        goodsCode: '', //商品编号
+        goodsStatus: '0', //商品状态 0 待上架 1销售中
+        parentId: '', //商品所属店铺 平台创建商品时必填，商户/自营 创建商品时不填写
+        maxAmount: '', //最高限购数量
+        minAmount: '', //最低起购数量
+        freeExpress: '1', //是否包邮 1是 0 否
+        weight: '', //商品重量 单位 克
+        volume: '', //商品体积 单位 立方厘米
+        expressCompany: '', //快递公司名称
+        companyCode: '', //快递公司对应的编号
+        unitPrice: '', //快递单位价格
+        attributes: [], //商品属性
+        specs: '', //商品规格
+        imageKeys: '', //商品图片key
+        guideGoods: '0', //是否金币商品 0否 1是
+        guideRate: '', //金币商品返还费率
+        goodsSort: '0', //商品排序序号
+        saleAmount: '', //商品销售数量
+        additionalServices: [], //加购服务 需要转成数组的json字符串
+        goodsSku: [], //商品sku 需要转成数组的json字符串
+      },
+      upload: {
+        goodsType: '0',
         id:'', // 商品id 不填时为新建，填写时为修改
         goodsName: '', //商品名字
         goodsTitle: '', //列表/详情显示的商品标题
@@ -415,260 +444,57 @@ export default {
         volume: '', //商品体积 单位 立方厘米
         expressCompany: '', //快递公司名称
         companyCode: '', //快递公司对应的编号
-        way: '', //快递计算方式 0 计件 1 计重 2 计体积
         unitPrice: '', //快递单位价格
-        attributes: [{title:'',value:''}], //商品属性
+        attributes: [], //商品属性
         specs: '', //商品规格
         imageKeys: '', //商品图片key
         guideGoods: '0', //是否金币商品 0否 1是
         guideRate: '', //金币商品返还费率
-        goodsSort: '', //商品排序序号
+        goodsSort: 0, //商品排序序号
         saleAmount: '', //商品销售数量
-        additionalServices: '', //加购服务 需要转成数组的json字符串
-        goodsSku: '', //商品sku 需要转成数组的json字符串
+        additionalServices: [], //加购服务 需要转成数组的json字符串
+        goodsSku: [], //商品sku 需要转成数组的json字符串
       },
       companyList:[{
-        value: 'SF',
-        label: '顺丰速运'
-      },{
-        value: 'HTKY',
-        label: '百世快递',
-      },{
-        value: 'ZTO',
-        label: '中通快递'
-      },{
-        value: 'STO',
-        label: '申通快递'
-      },{
-        value: 'YTO',
-        label: '圆通速递'
-      },{
-        value: 'YD',
-        label: '韵达速递'
-      },{
-        value: 'YZPY',
-        label: '邮政快递包裹'
-      },{
-        value: 'EMS',
-        label: 'EMS'
-      },{
-        value: 'HHTT',
-        label: '天天快递'
-      },{
-        value: 'JD',
-        label: '京东快递'
-      },{
-        value: 'UC',
-        label: '优速快递'
-      },{
-        value: 'DBL',
-        label: '德邦快递'
-      },{
-        value: 'ZJS',
-        label: '宅急送'
-      }],
-      options: [{
-        value: 'zhinan',
-        label: '指南',
-        children: [{
-          value: 'shejiyuanze',
-          label: '设计原则',
-          children: [{
-            value: 'yizhi',
-            label: '一致'
-          }, {
-            value: 'fankui',
-            label: '反馈'
-          }, {
-            value: 'xiaolv',
-            label: '效率'
-          }, {
-            value: 'kekong',
-            label: '可控'
-          }]
-        }, {
-          value: 'daohang',
-          label: '导航',
-          children: [{
-            value: 'cexiangdaohang',
-            label: '侧向导航'
-          }, {
-            value: 'dingbudaohang',
-            label: '顶部导航'
-          }]
-        }]
-      }, {
-        value: 'zujian',
-        label: '组件',
-        children: [{
-          value: 'basic',
-          label: 'Basic',
-          children: [{
-            value: 'layout',
-            label: 'Layout 布局'
-          }, {
-            value: 'color',
-            label: 'Color 色彩'
-          }, {
-            value: 'typography',
-            label: 'Typography 字体'
-          }, {
-            value: 'icon',
-            label: 'Icon 图标'
-          }, {
-            value: 'button',
-            label: 'Button 按钮'
-          }]
-        }, {
-          value: 'form',
-          label: 'Form',
-          children: [{
-            value: 'radio',
-            label: 'Radio 单选框'
-          }, {
-            value: 'checkbox',
-            label: 'Checkbox 多选框'
-          }, {
-            value: 'input',
-            label: 'Input 输入框'
-          }, {
-            value: 'input-number',
-            label: 'InputNumber 计数器'
-          }, {
-            value: 'select',
-            label: 'Select 选择器'
-          }, {
-            value: 'cascader',
-            label: 'Cascader 级联选择器'
-          }, {
-            value: 'switch',
-            label: 'Switch 开关'
-          }, {
-            value: 'slider',
-            label: 'Slider 滑块'
-          }, {
-            value: 'time-picker',
-            label: 'TimePicker 时间选择器'
-          }, {
-            value: 'date-picker',
-            label: 'DatePicker 日期选择器'
-          }, {
-            value: 'datetime-picker',
-            label: 'DateTimePicker 日期时间选择器'
-          }, {
-            value: 'upload',
-            label: 'Upload 上传'
-          }, {
-            value: 'rate',
-            label: 'Rate 评分'
-          }, {
-            value: 'form',
-            label: 'Form 表单'
-          }]
-        }, {
-          value: 'data',
-          label: 'Data',
-          children: [{
-            value: 'table',
-            label: 'Table 表格'
-          }, {
-            value: 'tag',
-            label: 'Tag 标签'
-          }, {
-            value: 'progress',
-            label: 'Progress 进度条'
-          }, {
-            value: 'tree',
-            label: 'Tree 树形控件'
-          }, {
-            value: 'pagination',
-            label: 'Pagination 分页'
-          }, {
-            value: 'badge',
-            label: 'Badge 标记'
-          }]
-        }, {
-          value: 'notice',
-          label: 'Notice',
-          children: [{
-            value: 'alert',
-            label: 'Alert 警告'
-          }, {
-            value: 'loading',
-            label: 'Loading 加载'
-          }, {
-            value: 'message',
-            label: 'Message 消息提示'
-          }, {
-            value: 'message-box',
-            label: 'MessageBox 弹框'
-          }, {
-            value: 'notification',
-            label: 'Notification 通知'
-          }]
-        }, {
-          value: 'navigation',
-          label: 'Navigation',
-          children: [{
-            value: 'menu',
-            label: 'NavMenu 导航菜单'
-          }, {
-            value: 'tabs',
-            label: 'Tabs 标签页'
-          }, {
-            value: 'breadcrumb',
-            label: 'Breadcrumb 面包屑'
-          }, {
-            value: 'dropdown',
-            label: 'Dropdown 下拉菜单'
-          }, {
-            value: 'steps',
-            label: 'Steps 步骤条'
-          }]
-        }, {
-          value: 'others',
-          label: 'Others',
-          children: [{
-            value: 'dialog',
-            label: 'Dialog 对话框'
-          }, {
-            value: 'tooltip',
-            label: 'Tooltip 文字提示'
-          }, {
-            value: 'popover',
-            label: 'Popover 弹出框'
-          }, {
-            value: 'card',
-            label: 'Card 卡片'
-          }, {
-            value: 'carousel',
-            label: 'Carousel 走马灯'
-          }, {
-            value: 'collapse',
-            label: 'Collapse 折叠面板'
-          }]
-        }]
-      }, {
-        value: 'ziyuan',
-        label: '资源',
-        children: [{
-          value: 'axure',
-          label: 'Axure Components'
-        }, {
-          value: 'sketch',
-          label: 'Sketch Templates'
-        }, {
-          value: 'jiaohu',
-          label: '组件交互文档'
-        }]
-      }],
-      propertyData:[{
-        key:'',
-        value:''
-      },{
-        key:'',
-        value:''
-      }],
+          value: 'SF',
+          label: '顺丰速运'
+        },{
+          value: 'HTKY',
+          label: '百世快递',
+        },{
+          value: 'ZTO',
+          label: '中通快递'
+        },{
+          value: 'STO',
+          label: '申通快递'
+        },{
+          value: 'YTO',
+          label: '圆通速递'
+        },{
+          value: 'YD',
+          label: '韵达速递'
+        },{
+          value: 'YZPY',
+          label: '邮政快递包裹'
+        },{
+          value: 'EMS',
+          label: 'EMS'
+        },{
+          value: 'HHTT',
+          label: '天天快递'
+        },{
+          value: 'JD',
+          label: '京东快递'
+        },{
+          value: 'UC',
+          label: '优速快递'
+        },{
+          value: 'DBL',
+          label: '德邦快递'
+        },{
+          value: 'ZJS',
+          label: '宅急送'
+        }],
       videoFlag: false,
       //是否显示进度条
       videoUploadPercent: "",
@@ -676,9 +502,10 @@ export default {
       isShowUploadVideo: false,
       //显示上传按钮
       videoForm: {
-          showVideoPath: ''
+          showVideoPath: '',
+          showVideoKey: ''
       },
-      fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}, {name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}],
+      fileList: [], // 商品详情多图暂存地儿
       dialogVisible: false,
       props: { // 分类列表
         expandTrigger: 'hover',
@@ -689,7 +516,8 @@ export default {
       },
       brandList:[],
       specList:[],
-      specsData:[{
+      specSel:'',
+      specsData:[{ // 商品规格暂存地儿
         name:'颜色',
         list:['红','白'],
         inputVisible: false,
@@ -700,6 +528,9 @@ export default {
         inputVisible: false,
         inputValue: '',
       }],
+      labelList: [], //商品标签暂存处
+      labelVisible: false, //商品标签暂存处
+      labelValue: '', //商品标签暂存处
       skuLoading:false, // 正在加载商品sku
       headers: {'Authorization':getToken()},
       editorContent: ''
@@ -711,36 +542,38 @@ export default {
       limit: 100,
     }
     this.$api.specList(this.params).then(res => {
-      this.specList = res.data.data
+      this.specList = res.data.list
     })
-    var editor = new E('#editorElem')
-    editor.customConfig.onchange = (html) => {
-      this.editorContent = html
-    }
-    editor.create()
   },
   methods: {
     getContent() {
       alert(this.editorContent)
     },
     addPropertyBtn(){
-      this.form.attributes.push([{'title':'','value':''}])
+      this.form.attributes.push({'title':'','value':''})
     },
     deleteProperty(index,row){
       console.log(index, row);
-      this.propertyData.splice(index,1)
+      this.form.attributes.splice(index,1)
     },
-    mainImageUpload(res, file, row) { // 商品主图上传
+    addServicesBtn(){
+      this.form.additionalServices.push({'serviceName':'','price':''})
+    },
+    deleteServices(index,row){
+      console.log(index, row);
+      this.form.additionalServices.splice(index,1)
+    },
+    mainImageUpload(res, file) { // 商品主图上传
       console.log(res, file)
       /* row.image = URL.createObjectURL(file.raw); */
       this.form.mainImage = res.data.download
-      this.form.mainKey = row.data.key
+      this.form.mainKey = res.data.key
     },
     handleAvatarSuccess(res, file, row) {
       console.log(res, file)
       /* row.image = URL.createObjectURL(file.raw); */
       row.image = res.data.download
-      row.key = row.data.key
+      row.key = res.data.key
     },
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg';
@@ -754,6 +587,23 @@ export default {
       } */
       return isJPG && isLt2M;
     },
+    /* 上传商品详情轮播多图 start */
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file, fileList) {
+      console.log(file, fileList);
+    },
+    handleChange(file, fileList) {
+      console.log(file,fileList)
+      /* this.fileList = fileList.slice(-3); */
+      this.fileList = fileList
+    },
+    /* imageUpload(res, file) { // 商品主图上传
+      console.log(res, file)
+      this.images.push(res.data.download)
+    }, */
+    /* 上传商品详情轮播多图 end */
     /* 上传视频 start */
     beforeUploadVideo(file) {
         var fileSize = file.size / 1024 / 1024 < 50;
@@ -786,8 +636,9 @@ export default {
         //}
 
         //后台上传地址
-        if (res.Code == 0) {
-            this.videoForm.showVideoPath = res.Data;
+        if (res.code == 0) {
+            this.videoForm.showVideoPath = res.data.download;
+            this.videoForm.showVideoKey = res.data.key;
         } else {
             layer.msg(res.Message);
         }
@@ -840,7 +691,7 @@ export default {
     deleteRow(index, rows) { // 删除标签行
       rows.splice(index, 1);
     },
-    /* 添加标签 */
+    /* 添加规格 */
     handleClose(tag,row) {
       row.list.splice(row.list.indexOf(tag), 1);
     },
@@ -851,7 +702,6 @@ export default {
         this.$refs.saveTagInput.$refs.input.focus();
       });
     },
-
     handleInputConfirm(row) {
       let inputValue = row.inputValue;
       if (inputValue) {
@@ -870,6 +720,26 @@ export default {
       }
       return bool
     },
+     /* 添加规格↑*end* */
+    /* 添加标签 */
+    labelClose(tag,list) {
+      list.splice(list.indexOf(tag), 1);
+    },
+    showLabel() {
+      this.labelVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.labelInput.$refs.input.focus();
+      });
+    },
+    handleLabelConfirm(value) {
+      let inputValue = value;
+      if (inputValue) {
+        this.labelList.push(inputValue);
+      }
+      this.labelVisible = false;
+      this.labelValue = '';
+    },
+
     fastAdd(){ // 快速添加规格
       let obj = {
         name:'',
@@ -936,6 +806,58 @@ export default {
         }
       });
       return resultArr;
+    },
+    submit(){
+      /* 处理商品多图轮播 */
+      this.upload = JSON.parse(JSON.stringify(this.form))
+      console.log(this.fileList)
+      this.form.images = []
+      let imgsArr = []
+      let keysArr = []
+      this.fileList.forEach((i) =>{ // 添加次图key
+        imgsArr.push(i.response.data.download)
+        keysArr.push(i.response.data.key)
+      })
+      this.upload.images = JSON.stringify(imgsArr) //商品轮播图 数组的json格式
+      keysArr.push(this.form.mainKey) // 添加主图key
+      keysArr.push(this.videoForm.showVideoKey) // 添加视频key
+      this.upload.goodsVideo = this.videoForm.showVideoPath
+      this.form.goodsSku.forEach((sku) =>{ // 添加商品sku里面有图片的key
+        if(sku.key){
+          keysArr.push(sku.key)
+        }
+      })
+      this.upload.imageKeys = JSON.stringify(keysArr) // 商品图片key 需要转成数组的json字符串
+      this.upload.attributes = JSON.stringify(this.form.attributes)
+      this.upload.label = JSON.stringify(this.labelList)
+      var specsArr = []
+      this.specsData.forEach((item,index) =>{
+        let specsOBJ = {}
+        specsOBJ['spec' + index] = item.name
+        specsOBJ['child'] = []
+        this.specsData[index].list.forEach((x,ind) =>{
+          let specsX = {}
+          specsX.value = x
+          specsOBJ['child'].push(specsX)
+        })
+        specsArr.push(specsOBJ)
+      })
+      console.log('!!!specs!!!')
+      console.log(specsArr)
+      console.log('---specs---')
+      this.upload.specs = JSON.stringify(specsArr)
+      this.upload.additionalServices = JSON.stringify(this.form.additionalServices)
+      this.upload.goodsSku = JSON.stringify(this.form.goodsSku)
+      console.log(this.upload)
+      this.upload.goodsDetail = JSON.stringify(this.form.goodsDetail)
+      /* this.upload.goodsType = JSON.parse(this.form.goodsType)
+      this.upload.goodsStatus = JSON.parse(this.form.goodsStatus)
+      this.upload.freeExpress = JSON.parse(this.form.freeExpress)
+      this.upload.guideGoods = JSON.parse(this.form.guideGoods)
+      this.upload.goodsType = JSON.parse(this.form.goodsType) */
+      this.$api.goodsSave(this.upload).then(res => {
+        this.$message.success('添加商品成功！！！')
+      })
     }
   }
 }
@@ -1014,5 +936,15 @@ export default {
   }
   h3 {
     color: #808080;
+  }
+  .goodsFooter{
+    width:100%;
+    padding: 5px 0;
+    background: rgba(0,0,0,0.6);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    text-align: center;
   }
 </style>

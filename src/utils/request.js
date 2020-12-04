@@ -15,6 +15,8 @@ const service = axios.create({
 // request interceptor
 service.interceptors.request.use(
   config => {
+    console.log(Object.prototype.toString.call(config.data))
+    console.log(config.data)
     if (Object.prototype.toString.call(config.data) === '[object FormData]') {
       // 请求拦截器处理
       config.headers = {
